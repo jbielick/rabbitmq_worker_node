@@ -1,0 +1,5 @@
+src/
+coverage/
+test/
+dist/__mocks__
+dist/__tests__
