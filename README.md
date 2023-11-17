@@ -124,6 +124,41 @@ the message is sent to the dead queue with an expiration.
 When a message in the dead queue expires,
 the message is discarded.
 
+```
+    ┌───────────────────┐
+    │                   │
+    │     exchange      │
+    │                   │           ┌────────────────────────┐
+    └─────────┬─────────┘           │                        │
+              │           ┌─────────┤    requeue exchange    │
+              │           │         │                        │
+              │           │         └──────────────▲─────────┘
+           routing      retry                      │
+              │           │                     expires
+              │           │                        │
+              │           │         ┌──────────────┴─────────┐
+┌─────────────▼───────────▼─┐       │                        │
+│                           │       │  retry queue with TTL  │
+│        work queue         │       │                        │
+│                           │       └──────────────▲─────────┘
+└─────────────┬─────────────┘                      │
+              │                                    │
+              │                                   yes
+              │                                    │
+           consume                          ┌──────┴───────┐         ┌──────────────┐
+              │                             │              │         │              │
+              │                 ┌───fail────►  can retry?  ├───no────►  dead queue  │
+┌─────────────▼─────────────┐   │           │              │         │              │
+│                           │   │           └──────────────┘         └──────────────┘
+│       worker.perform      ├───┤
+│                           │   │
+└───────────────────────────┘   │           ┌──────────────┐
+                                │           │              │
+                                └──succeed──►     ack!     │
+                                            │              │
+                                            └──────────────┘
+```
+
 ## Contributing
 
 Run tests with:
